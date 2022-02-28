@@ -18,7 +18,7 @@ TEST_URL = "https://www.recreation.gov/api/camps/availability/campground/"
 class Scraper
 	
 
-	def scrape_city_urls
+	def get_info
 
 		options = {}
 		OptionParser.new do |opt|
@@ -61,6 +61,6 @@ end
 
 	
 scrape = Scraper.new
-scrape.scrape_city_urls
+scrape.get_info
 
 
