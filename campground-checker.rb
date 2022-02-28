@@ -19,16 +19,18 @@ class Scraper
 	
 
 	def get_info
-
+		
+		#get user input with options for park id, start date, and end date
 		options = {}
 		OptionParser.new do |opt|
 		opt.on('--start_date STARTDATE', Time) { |o| options[:start_date] = o.strftime("%F")}
+		opt.on('--end_date STARTDATE', Time) { |o| options[:end_date] = o.strftime("%F")}
 		opt.on('--parks PARKS') { |o| options[:parks] = o }
 		end.parse!
 		
 		puts options
 		
-		
+		#json get request from reservation.gov api
 		temp_url = TEST_URL << options[:parks] <<
 		"/month?start_date=" << options[:start_date] << "T00%3A00%3A00.000Z"
 		html = URI.parse(temp_url)
@@ -48,10 +50,12 @@ class Scraper
 	end
 	
 	def get_name_of_park(park_id)
-			url = BASE_URL << MAIN_PAGE_ENDPOINT << park_id
-			page = URI.parse(url)
-			resp = Net::HTTP.get_response(page)
-			park_name = JSON.parse(resp.body)
+		
+		#parse json to get park name
+		url = BASE_URL << MAIN_PAGE_ENDPOINT << park_id
+		page = URI.parse(url)
+		resp = Net::HTTP.get_response(page)
+		park_name = JSON.parse(resp.body)
 
 		puts park_name["campground"]["facility_name"]
 	end
