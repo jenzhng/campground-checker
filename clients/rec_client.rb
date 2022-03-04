@@ -2,7 +2,7 @@
 
 
 
-class RecreationClient
+class RecClient
 	
 	BASE_URL = "https://www.recreation.gov"
 	AVAILABILITY_ENDPOINT = (
