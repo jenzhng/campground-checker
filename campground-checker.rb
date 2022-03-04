@@ -6,7 +6,7 @@ require 'optparse/time'
 require 'json'
 require 'net/http'
 require 'rest-client'
-require './clients/recreation_client'
+require './clients/rec_client'
 
 
 class Scraper
@@ -42,7 +42,7 @@ class Scraper
 	
 		info_by_park_id = {}
 		for park_id in options[:parks]
-			info_by_park_id[park_id] = check_park(
+			info_by_park_id[park_id] = single_park(
             		park_id,
            		 options[:start_date],
             		options[:end_date], 
@@ -54,7 +54,7 @@ class Scraper
 		end
 	
 		if json_output
-			output, has_availabilities = generate_json_output(info_by_park_id)
+			output, has_availabilities = gen_json_output(info_by_park_id)
 		else 
 			output, has_availabilities = generate_human_output(
             		info_by_park_id,
@@ -82,18 +82,18 @@ class Scraper
 		
 		#get data from each month
 		api_data = []
-		for month_date in months do
-			api_data.push(RecreationClient.get_availability(park_id, month_date))
+		for mon_date in months do
+			api_data.push(RecClient.get_availability(park_id, month_date))
 		end
 		
 		#collapse data to get useable data
 		#option to filter by campsite_type 
 		data = {}
 		
-		for month_data in api_data
+		for mon_data in api_data
 			
 			
-			for campsite_id, campsite_data in month_data["campsites"]
+			for campsite_id, campsite_data in mon_data["campsites"]
 				available = []
 				
 				data.store(campsite_id,[])
@@ -124,21 +124,18 @@ class Scraper
 		return data
 	end
 				
-	def check_park(park_id, start_date, end_date, campsite_type, campsite_ids=[], nights=nil
+	def single_park(park_id, start_date, end_date, campsite_type, campsite_ids=[], nights=nil
 	)
 		park_info = get_park_info(park_id, start_date, end_date, campsite_type, campsite_ids
 		)
-		#print park_info
-		# print (
-			# "Information for park #{park_id}: "
-			# )
-		park_name = RecreationClient.get_park_name(park_id)
+		
+		park_name = RecClient.get_park_name(park_id)
 
-		current, maximum, availabilities_filtered = 
+		current, max, availabilities_filtered = 
 		get_availability(park_info, start_date, end_date, nights=nights
 		 )
 		 
-		return current, maximum, availabilities_filtered, park_name
+		return current, max, availabilities_filtered, park_name
 		
 		
 	end
@@ -148,7 +145,7 @@ class Scraper
 	)
 		nights = nights.to_i
 		num_available = 0
-		maximum = park_info.length
+		max = park_info.length
 		start = DateTime.parse(start_date)
 		end_d = DateTime.parse(end_date)
 		
@@ -173,23 +170,23 @@ class Scraper
 		available_dates_by_campsite_id = Hash.new{|h, k| h[k] = []}
 		for site, availabilities in park_info
 			#list of dates that are within range of stay
-			desired_available = []
+			desired_dates = []
 			for date in availabilities
 				
 				if (dates.include?(date) == false)
 					next
 				
 				end
-					desired_available.append(date)
+					desired_dates.append(date)
 				
 			end
-			unless desired_available
+			unless desired_dates
 				next
 			end	
 			
 			
 			appropriate_consecutive_ranges = consecutive_nights(
-            desired_available, nights
+            desired_dates, nights
 			)
 			
 			
@@ -210,7 +207,7 @@ class Scraper
 			
 		end
 
-		return num_available, maximum, available_dates_by_campsite_id
+		return num_available, max, available_dates_by_campsite_id
 
 	end
 
@@ -261,7 +258,7 @@ class Scraper
 
 	end
 
-	def generate_human_output(
+	def gen_human_output(
     info_by_park_id, start_date, end_date, gen_campsite_info=false
 )
 	out = []
@@ -277,14 +274,14 @@ class Scraper
 				print ("FAILURE ")
 			end
 			out.append(
-            "#{park_name} (#{park_id}): #{current} site(s) available out of #{maximum} site(s)"  
+            "#{park_name} (#{park_id}): #{current} site(s) open out of #{maximum} site(s)"  
             
             )
 			#displays campsite id and available dates
 			if gen_campsite_info and available_dates_by_site_id
 				for site_id, dates in available_dates_by_site_id
                 out.append(
-                    "  * Site #{site_id} is available on the following dates:"
+                    "  * Site #{site_id} is open for booking on the dates:"
                 )
 				
 					for date in dates
@@ -306,18 +303,18 @@ class Scraper
 			end_p=DateTime.parse(end_date.to_s).strftime( "%Y-%m-%d")
 			out.insert(
             0,
-            "there are campsites available from #{start} to #{end_p}!!!"
+            "there are campsites open from #{start} to #{end_p}!!!"
             
 			)
 		else
-        out.insert(0, "There are no campsites available :(")
+        out.insert(0, "No campsites are available")
 		end
 	
 		return (out).join("\n"), has_availabilities
 
 	end
 
-	def generate_json_output(info_by_park_id)
+	def gen_json_output(info_by_park_id)
 		availabilities_by_park_id = {}
 		has_availabilities = false
 		for park_id, info in info_by_park_id
