@@ -1,5 +1,5 @@
 # campground-checker
-Command line Ruby app that checks reservation.gov for campsite vacancies. App takes input such as camp type, number of nights, and park id. 
+Command line Ruby app that checks reservation.gov for campsite vacancies. App takes input such as camp type, number of nights, and park id. You can find the park id for specific campsites on recreation.gov
 
 ## Testing 
 - [x] retrieve park name
