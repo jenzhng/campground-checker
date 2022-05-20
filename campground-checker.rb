@@ -10,7 +10,6 @@ require 'date'
 require 'time'
 require 'rrule'
 require "set"
-
 require './clients/rec_client'
 
 
@@ -86,7 +85,7 @@ class Scraper
 		#get data from each month
 		api_data = []
 		for month_date in months do
-			api_data.push(RecreationClient.get_availability(park_id, month_date))
+			api_data.push(RecClient.get_availability(park_id, month_date))
 		end
 		
 		#collapse data into described output format
@@ -135,7 +134,7 @@ class Scraper
 		# print (
 			# "Information for park #{park_id}: "
 			# )
-		park_name = RecreationClient.get_park_name(park_id)
+		park_name = RecClient.get_park_name(park_id)
 
 		current, maximum, availabilities_filtered = 
 		get_availability(park_info, start_date, end_date, nights=nights
@@ -276,13 +275,13 @@ class Scraper
 				print ("FAILURE ")
 			end
 			out.append(
-            "#{park_name} (#{park_id}): #{current} site(s) available out of #{maximum} site(s)"  
+            "#{park_name} (#{park_id}): #{current} site(s) open out of #{maximum} site(s)"  
             
             )
 			if gen_campsite_info and available_dates_by_site_id
 				for site_id, dates in available_dates_by_site_id
                 out.append(
-                    "  * Site #{site_id} is available on the following dates:"
+                    "  * Site #{site_id} is open on the following dates:"
                 )
 				
 					for date in dates
@@ -304,11 +303,11 @@ class Scraper
 			end_p=DateTime.parse(end_date.to_s).strftime( "%Y-%m-%d")
 			out.insert(
             0,
-            "there are campsites available from #{start} to #{end_p}!!!"
+            "there are campsites open from #{start} to #{end_p}!!!"
             
 			)
 		else
-        out.insert(0, "There are no campsites available :(")
+        out.insert(0, "No campsites available :(")
 		end
 	
 		return (out).join("\n"), has_availabilities
