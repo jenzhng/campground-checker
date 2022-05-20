@@ -6,7 +6,7 @@ require 'optparse/time'
 require 'json'
 require 'net/http'
 require 'rest-client'
-require './clients/recreation_client'
+require './clients/rec_client'
 
 
 class Scraper
