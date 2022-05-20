@@ -42,7 +42,7 @@ class Scraper
 	
 		info_by_park_id = {}
 		for park_id in options[:parks]
-			info_by_park_id[park_id] = single_park(
+			info_by_park_id[park_id] = check_park(
             		park_id,
            		 options[:start_date],
             		options[:end_date], 
@@ -54,7 +54,7 @@ class Scraper
 		end
 	
 		if json_output
-			output, has_availabilities = gen_json_output(info_by_park_id)
+			output, has_availabilities = generate_json_output(info_by_park_id)
 		else 
 			output, has_availabilities = generate_human_output(
             		info_by_park_id,
@@ -82,7 +82,7 @@ class Scraper
 		
 		#get data from each month
 		api_data = []
-		for mon_date in months do
+		for month_date in months do
 			api_data.push(RecClient.get_availability(park_id, month_date))
 		end
 		
@@ -90,10 +90,10 @@ class Scraper
 		#option to filter by campsite_type 
 		data = {}
 		
-		for mon_data in api_data
+		for month_data in api_data
 			
 			
-			for campsite_id, campsite_data in mon_data["campsites"]
+			for campsite_id, campsite_data in month_data["campsites"]
 				available = []
 				
 				data.store(campsite_id,[])
@@ -124,18 +124,18 @@ class Scraper
 		return data
 	end
 				
-	def single_park(park_id, start_date, end_date, campsite_type, campsite_ids=[], nights=nil
+	def check_park(park_id, start_date, end_date, campsite_type, campsite_ids=[], nights=nil
 	)
 		park_info = get_park_info(park_id, start_date, end_date, campsite_type, campsite_ids
 		)
 		
 		park_name = RecClient.get_park_name(park_id)
 
-		current, max, availabilities_filtered = 
+		current, maximum, availabilities_filtered = 
 		get_availability(park_info, start_date, end_date, nights=nights
 		 )
 		 
-		return current, max, availabilities_filtered, park_name
+		return current, maximum, availabilities_filtered, park_name
 		
 		
 	end
@@ -145,7 +145,7 @@ class Scraper
 	)
 		nights = nights.to_i
 		num_available = 0
-		max = park_info.length
+		maximum = park_info.length
 		start = DateTime.parse(start_date)
 		end_d = DateTime.parse(end_date)
 		
@@ -170,23 +170,23 @@ class Scraper
 		available_dates_by_campsite_id = Hash.new{|h, k| h[k] = []}
 		for site, availabilities in park_info
 			#list of dates that are within range of stay
-			desired_dates = []
+			desired_available  = []
 			for date in availabilities
 				
 				if (dates.include?(date) == false)
 					next
 				
 				end
-					desired_dates.append(date)
+					desired_available.append(date)
 				
 			end
-			unless desired_dates
+			unless desired_available
 				next
 			end	
 			
 			
 			appropriate_consecutive_ranges = consecutive_nights(
-            desired_dates, nights
+            desired_available, nights
 			)
 			
 			
@@ -207,7 +207,7 @@ class Scraper
 			
 		end
 
-		return num_available, max, available_dates_by_campsite_id
+		return num_available, maximum, available_dates_by_campsite_id
 
 	end
 
@@ -258,8 +258,8 @@ class Scraper
 
 	end
 
-	def gen_human_output(
-    info_by_park_id, start_date, end_date, gen_campsite_info=false
+	def generate_human_output(
+    info_by_park_id, start_date, end_date, generate_campsite_info=false
 )
 	out = []
     	has_availabilities = false
@@ -278,7 +278,7 @@ class Scraper
             
             )
 			#displays campsite id and available dates
-			if gen_campsite_info and available_dates_by_site_id
+			if generate_campsite_info and available_dates_by_site_id
 				for site_id, dates in available_dates_by_site_id
                 out.append(
                     "  * Site #{site_id} is open for booking on the dates:"
@@ -314,7 +314,7 @@ class Scraper
 
 	end
 
-	def gen_json_output(info_by_park_id)
+	def generate_json_output(info_by_park_id)
 		availabilities_by_park_id = {}
 		has_availabilities = false
 		for park_id, info in info_by_park_id
