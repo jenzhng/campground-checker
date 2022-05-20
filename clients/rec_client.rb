@@ -28,7 +28,6 @@ class RecClient
 		end
 	end
 	
-	
 	class << self 
 		def get_park_name(park_id)
 			url = Kernel::format(MAIN_PAGE_ENDPOINT, park_id)
