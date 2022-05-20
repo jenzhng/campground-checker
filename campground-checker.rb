@@ -19,6 +19,7 @@ class Scraper
 
 	def main
 		
+		#get user input with options for park id, start date, and end date, campsite type, campsite id
 		
 		options = {
 		:parks => [], 
@@ -88,8 +89,8 @@ class Scraper
 			api_data.push(RecClient.get_availability(park_id, month_date))
 		end
 		
-		#collapse data into described output format
-		#filter by campsite_type if necessary
+		#collapse data to get useable data
+		#option to filter by campsite_type
 		data = {}
 		
 		for month_data in api_data
@@ -174,6 +175,7 @@ class Scraper
 		
 		available_dates_by_campsite_id = Hash.new{|h, k| h[k] = []}
 		for site, availabilities in park_info
+			#list of dates that are within range of stay
 			desired_available = []
 			for date in availabilities
 				
@@ -210,7 +212,6 @@ class Scraper
 			
 			
 		end
-		# binding.pry
 		return num_available, maximum, available_dates_by_campsite_id
 
 	end
@@ -233,15 +234,14 @@ class Scraper
 		consective_ranges = enum.to_a
 		
 		long_enough_consecutive_ranges = []
-		#print consective_ranges
+		
 		for r in consective_ranges
-        # Skip ranges that are too short.
+        	#skip ranges less than length of stay
 			if r.length < nights
 				next
 			end
 			for start_index in 0..r.length - nights
 					
-				# start_nice = start_d.next_day(r[start_index]+1)
 				start_nice = DateTime.parse(start_d.next_day(r[start_index]+1).to_s).strftime( "%Y-%m-%d")
 				
 				end_nice = DateTime.parse(start_d.next_day(r[start_index + nights - 1] + 2).to_s).strftime( "%Y-%m-%d")
@@ -278,6 +278,7 @@ class Scraper
             "#{park_name} (#{park_id}): #{current} site(s) open out of #{maximum} site(s)"  
             
             )
+			#displays campsite id and available dates
 			if gen_campsite_info and available_dates_by_site_id
 				for site_id, dates in available_dates_by_site_id
                 out.append(
