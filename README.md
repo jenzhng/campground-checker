@@ -3,7 +3,7 @@ Command line Ruby app that checks reservation.gov for campsite vacancies. App ta
 
 ## Testing 
 - [x] retrieve park name
-- [] retrieve availability for multiple parks
+- [ ] retrieve availability for multiple parks
 ## Example Usage
 ```
 ruby campground-checker.rb --start_date 2022-05-01 --parks 232508
